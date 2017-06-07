@@ -87,10 +87,10 @@ public class Parser {
                         }
                         heading = paragraph.getText();
                     } else {
-                        body.append(paragraph.getText());
+                        body.append(paragraph.getText() + "\n");
                     }
                 } else {
-                    body.append(paragraph.getText());
+                    body.append(paragraph.getText() + "\n");
                 }
 
             } else if (element.getElementType().toString().equals("TABLE")) {
@@ -111,10 +111,10 @@ public class Parser {
                         }
                         heading = table.getText();
                     } else {
-                        body.append(table.getText());
+                        body.append(table.getText() + "\n");
                     }
                 } else {
-                    body.append(table.getText());
+                    body.append(table.getText() + "\n");
                 }
             }
         }
@@ -191,10 +191,10 @@ public class Parser {
                         }
                         heading = paragraph.getText();
                     } else {
-                        body.append(paragraph.getText() + " ");
+                        body.append(paragraph.getText() + "\n");
                     }
                 } else {
-                    body.append(paragraph.getText() + " ");
+                    body.append(paragraph.getText() + "\n");
                 }
 
             } else if (element.getElementType().toString().equals("TABLE")) {
@@ -215,10 +215,10 @@ public class Parser {
                         }
                         heading = table.getText();
                     } else {
-                        body.append(table.getText() + " ");
+                        body.append(table.getText() + "\n");
                     }
                 } else {
-                    body.append(table.getText() + " ");
+                    body.append(table.getText() + "\n");
                 }
             }
         }
