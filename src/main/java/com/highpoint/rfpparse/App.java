@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Hello world!
@@ -15,10 +17,17 @@ public class App
 {
     public static void main(final String[] args) {
         try {
-            String info = new String(Files.readAllBytes(Paths.get(args[0])));
-            String[] arr = info.split("\\r?\\n");
+            String info = new String(Files.readAllBytes(Paths.get(args[1])));
+            Map<String, Object> map = new HashMap<>();
 
-            Parser p = new Parser(new FileInputStream(arr[0]), arr[1], arr[2], arr[3], arr[4], arr[5]);
+            // split on ':' and on '::'
+            String[] parts = info.split("::?");
+
+            for (int i = 0; i < parts.length; i += 2) {
+                map.put(parts[i], parts[i + 1]);
+            }
+
+            Parser p = new Parser(new FileInputStream(args[0]), map);
             System.out.println(p.getSubSections());
         } catch (IOException | InvalidFormatException e) {
             System.out.println("Invalid input/output file name or format");

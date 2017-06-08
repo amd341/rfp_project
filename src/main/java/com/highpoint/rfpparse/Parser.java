@@ -12,7 +12,6 @@ import org.apache.poi.xwpf.usermodel.*;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -20,38 +19,62 @@ import java.util.*;
 /**
  * Created by Brenden Sosnader on 6/6/17.
  * Parser class for parsing files in Microsoft Word format into sections based on Heading 1's and Heading 2's
- * as well as uploading parsed sections to an elasticsearch instance 
+ * as well as uploading parsed sections to an elasticsearch instance
  */
 public class Parser {
 
     private XWPFDocument xdoc;
-    private String company;
-    private String date;
-    private String type;
-    private String service;
-    private String output;
-
+    private Map<String,Object> entries;
 
 
     /**
-     * @param input the path to a rfp docx file to be parsed
-     * @param company the company the rfp is for
-     * @param date the date the rfp was submitted
-     * @param type the type of company
-     * @param service the service/services provided to the company
-     * @throws IOException if file paths are incorrect
-     * @throws InvalidFormatException if it is not a docx file
+     * @param input path to docx file to be parsed
+     * @param entries optional key/value pairs to be added to index for greater classification
+     * @throws IOException if input filepath is wrong
+     * @throws InvalidFormatException if file is not a docx
      */
-
-    public Parser(InputStream input, String company, String date, String type, String service, String output) throws IOException, InvalidFormatException {
+    public Parser(InputStream input, Map<String,Object> entries) throws IOException, InvalidFormatException {
         xdoc = new XWPFDocument(OPCPackage.open(input));
-        this.company = company;
-        this.date = date;
-        this.type = type;
-        this.service = service;
-        this.output = output;
+        this.entries = entries;
 
     }
+
+    /**
+     * @param hostname hostname of elasticsearch instance
+     * @param port port for accessing
+     * @param scheme scheme of access
+     * @param index name of index to add data to
+     * @param type name of type to add data to
+     * @param useSubsections true to split by heading 2, false to split by heading 1
+     * @return String response from elasticsearch
+     * @throws IOException if hostname is incorrect
+     */
+    public String bulkIndexSections(String hostname, int port, String scheme, String index, String type, boolean useSubsections) throws IOException {
+        RestClient restClient = RestClient.builder(
+                new HttpHost(hostname, port, scheme)).build();
+
+        String actionMetaData = String.format("{ \"index\" : { \"_index\" : \"%s\", \"_type\" : \"%s\" } }%n", index, type);
+        List<String> bulkData;
+        if (useSubsections) {
+            bulkData = getSubSectionsAsStrings();
+        } else {
+            bulkData = getSectionsAsStrings();
+        }
+
+        StringBuilder bulkRequestBody = new StringBuilder();
+        for (String bulkItem : bulkData) {
+            bulkRequestBody.append(actionMetaData);
+            bulkRequestBody.append(bulkItem);
+            bulkRequestBody.append("\n");
+        }
+        HttpEntity entity = new NStringEntity(bulkRequestBody.toString(), ContentType.APPLICATION_JSON);
+
+        Response response = restClient.performRequest("POST", "/rfps/rfp/_bulk",
+                Collections.emptyMap(), entity);
+        restClient.close();
+        return response.toString();
+    }
+
     public List<Map<String,Object>> getSections()
     {
         Map<String,Object> section = new HashMap<>();
@@ -69,10 +92,7 @@ public class Parser {
                         if (body.length() > 0) {
                             section.put("body", body.toString());
                             section.put("heading", heading);
-                            section.put("company", company);
-                            section.put("date", date);
-                            section.put("type", type);
-                            section.put("service", service);
+                            section.putAll(entries);
                             sections.add(section);
                             section = new HashMap<>();
                             body = new StringBuilder();
@@ -93,10 +113,7 @@ public class Parser {
                         if (body.length() > 0) {
                             section.put("body", body.toString());
                             section.put("heading", heading);
-                            section.put("company", company);
-                            section.put("date", date);
-                            section.put("type", type);
-                            section.put("service", service);
+                            section.putAll(entries);
                             sections.add(section);
                             section = new HashMap<>();
                             body = new StringBuilder();
@@ -112,10 +129,7 @@ public class Parser {
         }
         section.put("heading", heading);
         section.put("body", body.toString());
-        section.put("company", company);
-        section.put("date", date);
-        section.put("type", type);
-        section.put("service", service);
+        section.putAll(entries);
         sections.add(section);
         return sections;
     }
@@ -149,10 +163,7 @@ public class Parser {
                             section.put("body", body.toString());
                             section.put("headingOne", headingOne);
                             section.put("headingTwo", headingTwo);
-                            section.put("company", company);
-                            section.put("date", date);
-                            section.put("type", type);
-                            section.put("service", service);
+                            section.putAll(entries);
                             sections.add(section);
                             section = new HashMap<>();
                             body = new StringBuilder();
@@ -188,10 +199,7 @@ public class Parser {
                             section.put("body", body.toString());
                             section.put("headingOne", headingOne);
                             section.put("headingTwo", headingTwo);
-                            section.put("company", company);
-                            section.put("date", date);
-                            section.put("type", type);
-                            section.put("service", service);
+                            section.putAll(entries);
                             sections.add(section);
                             section = new HashMap<>();
                             body = new StringBuilder();
@@ -212,52 +220,13 @@ public class Parser {
         section.put("body", body.toString());
         section.put("headingOne", headingOne);
         section.put("headingTwo", headingTwo);
-        section.put("company", company);
-        section.put("date", date);
-        section.put("type", type);
-        section.put("service", service);
+        section.putAll(entries);
         sections.add(section);
 
         return sections;
     }
 
-
-    public String getJson() throws JsonProcessingException
-    {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        return objectMapper.writeValueAsString(getSections());
-    }
-
-    public void writeToFile() throws IOException
-    {
-        FileWriter fileWriter = new FileWriter(output);
-        fileWriter.write(getJson());
-        fileWriter.close();
-    }
-    public String bulkIndexSections(String hostname, int port, String scheme, String index, String type) throws IOException {
-        RestClient restClient = RestClient.builder(
-                new HttpHost(hostname, port, scheme)).build();
-
-        String actionMetaData = String.format("{ \"index\" : { \"_index\" : \"%s\", \"_type\" : \"%s\" } }%n", index, type);
-
-        List<String> bulkData = getSectionsAsStrings();
-        StringBuilder bulkRequestBody = new StringBuilder();
-        for (String bulkItem : bulkData)
-        {
-            bulkRequestBody.append(actionMetaData);
-            bulkRequestBody.append(bulkItem);
-            bulkRequestBody.append("\n");
-        }
-        HttpEntity entity = new NStringEntity(bulkRequestBody.toString(), ContentType.APPLICATION_JSON);
-
-        Response response = restClient.performRequest("POST", "/rfps/rfp/_bulk",
-                Collections.emptyMap(), entity);
-        restClient.close();
-        return response.toString();
-    }
-
-    public List<String> getSectionsAsStrings() throws JsonProcessingException {
+    private List<String> getSectionsAsStrings() throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String,Object> section = new HashMap<>();
         List<String> sections = new ArrayList<>();
@@ -274,10 +243,7 @@ public class Parser {
                         if (body.length() > 0) {
                             section.put("body", body.toString());
                             section.put("heading", heading);
-                            section.put("company", company);
-                            section.put("date", date);
-                            section.put("type", type);
-                            section.put("service", service);
+                            section.putAll(entries);
                             sections.add(objectMapper.writeValueAsString(section));
                             section = new HashMap<>();
                             body = new StringBuilder();
@@ -298,10 +264,7 @@ public class Parser {
                         if (body.length() > 0) {
                             section.put("body", body.toString());
                             section.put("heading", heading);
-                            section.put("company", company);
-                            section.put("date", date);
-                            section.put("type", type);
-                            section.put("service", service);
+                            section.putAll(entries);
                             sections.add(objectMapper.writeValueAsString(section));
                             section = new HashMap<>();
                             body = new StringBuilder();
@@ -317,15 +280,12 @@ public class Parser {
         }
         section.put("heading", heading);
         section.put("body", body.toString());
-        section.put("company", company);
-        section.put("date", date);
-        section.put("type", type);
-        section.put("service", service);
+        section.putAll(entries);
         sections.add(objectMapper.writeValueAsString(section));
         return sections;
     }
 
-    public List<String> getSubSectionsAsStrings() throws JsonProcessingException {
+    private List<String> getSubSectionsAsStrings() throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String,Object> section = new HashMap<>();
         List<String> sections = new ArrayList<>();
@@ -354,10 +314,7 @@ public class Parser {
                             section.put("body", body.toString());
                             section.put("headingOne", headingOne);
                             section.put("headingTwo", headingTwo);
-                            section.put("company", company);
-                            section.put("date", date);
-                            section.put("type", type);
-                            section.put("service", service);
+                            section.putAll(entries);
                             sections.add(objectMapper.writeValueAsString(section));
                             section = new HashMap<>();
                             body = new StringBuilder();
@@ -393,10 +350,7 @@ public class Parser {
                             section.put("body", body.toString());
                             section.put("headingOne", headingOne);
                             section.put("headingTwo", headingTwo);
-                            section.put("company", company);
-                            section.put("date", date);
-                            section.put("type", type);
-                            section.put("service", service);
+                            section.putAll(entries);
                             sections.add(objectMapper.writeValueAsString(section));
                             section = new HashMap<>();
                             body = new StringBuilder();
@@ -417,20 +371,9 @@ public class Parser {
         section.put("body", body.toString());
         section.put("headingOne", headingOne);
         section.put("headingTwo", headingTwo);
-        section.put("company", company);
-        section.put("date", date);
-        section.put("type", type);
-        section.put("service", service);
+        section.putAll(entries);
         sections.add(objectMapper.writeValueAsString(section));
 
         return sections;
     }
-
-    public XWPFDocument getXdoc()
-    {
-        return xdoc;
-    }
-
-
-
 }
