@@ -19,7 +19,7 @@ public class App
             String[] arr = info.split("\\r?\\n");
 
             Parser p = new Parser(new FileInputStream(arr[0]), arr[1], arr[2], arr[3], arr[4], arr[5]);
-            System.out.println(p.index());
+            System.out.println(p.getSubSections());
         } catch (IOException | InvalidFormatException e) {
             System.out.println("Invalid input/output file name or format");
             e.printStackTrace();
