@@ -10,11 +10,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Hello world!
+ * Parser main class
  *
  */
 public class App 
 {
+    /**
+     * @param args takes two arguments, first the filepath to be parsed, and second
+     *             a config file that consists of key:value pairs separated by ::
+     */
     public static void main(final String[] args) {
         try {
             String info = new String(Files.readAllBytes(Paths.get(args[1])));
@@ -28,7 +32,8 @@ public class App
             }
 
             Parser p = new Parser(new FileInputStream(args[0]), map);
-            System.out.println(p.getSubSections());
+            p.bulkIndexSections("search-elastic-test-yyco5dncwicwd2nufqhakzek2e.us-east-1.es.amazonaws.com",
+                    443, "https", "rfps", "rfp", true);
         } catch (IOException | InvalidFormatException e) {
             System.out.println("Invalid input/output file name or format");
             e.printStackTrace();

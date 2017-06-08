@@ -193,7 +193,6 @@ public class Parser {
                     }
                     else if(table.getStyleID().equals("Heading2"))
                     {
-                        System.out.print("hmmm");
                         if(body.length() > 0)
                         {
                             section.put("body", body.toString());
