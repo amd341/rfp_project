@@ -21,7 +21,7 @@ import java.util.*;
 /**
  * Created by alex on 6/13/17.
  */
-public class xmlParser {
+public class ExcelParser {
 
     //private static final String FILE_NAME = "/home/alex/documents/excels/enterprise.xlsx";
 
@@ -160,8 +160,6 @@ public class xmlParser {
 
         //System.out.println("we here 11");
 
-        HttpEntity entity = new NStringEntity(String.valueOf(sectionsList), ContentType.APPLICATION_JSON);
-
         //System.out.println("we here 222");
 
         String actionMetaData = String.format("{ \"index\" : { \"_index\" : \"%s\", \"_type\" : \"%s\" } }%n", index, type);
@@ -171,11 +169,11 @@ public class xmlParser {
         for (String s : sectionsList){
             prepString.append(actionMetaData);
             prepString.append(s);
-            if (sectionsList.indexOf(s) != sectionsList.size()-1) {
-                prepString.append("\n");
-            }
+            prepString.append("\n");
 
         }
+
+        HttpEntity entity = new NStringEntity(prepString.toString(), ContentType.APPLICATION_JSON);
 
         System.out.println();
         System.out.println(prepString);

@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.highpoint.rfpparse.App.Choice.ORIGINAL;
-
 /**
  * Hello world!
  *
@@ -38,7 +36,7 @@ public class App
                     map.put(parts[i], parts[i + 1]);
                 }
 
-                Parser p = new Parser(new FileInputStream(args[0]), map);
+                DocxParser p = new DocxParser(new FileInputStream(args[0]), map);
                 System.out.println(p.getSubSections());
             } catch (IOException | InvalidFormatException e) {
                 System.out.println("Invalid input/output file name or format");
@@ -46,13 +44,13 @@ public class App
             }
         }
         else if (choice == Choice.EXCELBASIC) {
-            xmlParser x = new xmlParser();
+            ExcelParser x = new ExcelParser();
             x.xmlParse("/home/alex/Documents/excels/enterprise.xlsx");
             System.out.println("we're here");
         }
         else if (choice == Choice.EXCEL){
             try {
-                xmlParser x = new xmlParser();
+                ExcelParser x = new ExcelParser();
                 List<String> listOfStrings = x.ExcelToJSON("/home/alex/Documents/excels/enterprise.xlsx", "service here", "Biogen", "06/11/2017");
 
                 String resp = x.postToES(listOfStrings, "search-elastic-test-yyco5dncwicwd2nufqhakzek2e.us-east-1.es.amazonaws.com", 443, "https","rfps3","rfp");
