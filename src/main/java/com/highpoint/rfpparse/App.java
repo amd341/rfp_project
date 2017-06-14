@@ -32,8 +32,13 @@ public class App
             }
 
             Parser p = new Parser(new FileInputStream(args[0]), map);
-            p.bulkIndexSections("search-elastic-test-yyco5dncwicwd2nufqhakzek2e.us-east-1.es.amazonaws.com",
-                    443, "https", "rfps", "rfp", true);
+            //p.bulkIndexSections("search-elastic-test-yyco5dncwicwd2nufqhakzek2e.us-east-1.es.amazonaws.com",
+             //       443, "https", "rfps2", "rfp2", true);
+            String r = p.mapNewFields("search-elastic-test-yyco5dncwicwd2nufqhakzek2e.us-east-1.es.amazonaws.com",
+                    443, "https","rfps2", "rfp2");
+
+            System.out.println(r);
+
         } catch (IOException | InvalidFormatException e) {
             System.out.println("Invalid input/output file name or format");
             e.printStackTrace();
