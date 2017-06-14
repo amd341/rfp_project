@@ -1,14 +1,21 @@
 package com.highpoint.rfpparse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.nio.entity.NStringEntity;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -66,13 +73,15 @@ public class xmlParser {
         }
     }
 
-    public List<String> ExcelToJSON(String fileName){
+    public List<String> ExcelToJSON(String fileName, String service, String company, String date){
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String,Object> sectionHash = new HashMap<>();
         List<String> sectionsList = new ArrayList<>();
         boolean isBlankRow = true;
+
         try{
             //initiating variable for the excel file, workbook, and sheet
+
             FileInputStream excelFile = new FileInputStream(new File(fileName));
             Workbook workbook = new XSSFWorkbook(excelFile);
             Sheet datatypeSheet = workbook.getSheetAt(0);
@@ -84,6 +93,9 @@ public class xmlParser {
             while(count < workbook.getNumberOfSheets()){
                 datatypeSheet = workbook.getSheetAt(count);
 
+                sectionHash.put("company", company);
+                sectionHash.put("service", service);
+                sectionHash.put("date", date);
                 sectionHash.put("heading", workbook.getSheetName(count));
 
                 //iterate through rows
@@ -141,5 +153,35 @@ public class xmlParser {
             System.out.println(s);
         }
         return(sectionsList);
+    }
+
+    public String postToES(List<String> sectionsList, String hostname, int port, String scheme, String index, String type) throws IOException{
+        RestClient restClient = RestClient.builder(new HttpHost(hostname, port, scheme)).build();
+
+        //System.out.println("we here 11");
+
+        HttpEntity entity = new NStringEntity(String.valueOf(sectionsList), ContentType.APPLICATION_JSON);
+
+        //System.out.println("we here 222");
+
+        String actionMetaData = String.format("{ \"index\" : { \"_index\" : \"%s\", \"_type\" : \"%s\" } }%n", index, type);
+
+        StringBuilder prepString = new StringBuilder();
+
+        for (String s : sectionsList){
+            prepString.append(actionMetaData);
+            prepString.append(s);
+            prepString.append("\n");
+
+        }
+
+        System.out.println();
+        System.out.println(prepString);
+
+        Response response = restClient.performRequest("POST", "/rfps3/rfp/_bulk",
+                Collections.emptyMap(), entity);
+        restClient.close();
+
+        return response.toString();
     }
 }

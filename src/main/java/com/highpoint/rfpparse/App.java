@@ -51,8 +51,16 @@ public class App
             System.out.println("we're here");
         }
         else if (choice == Choice.EXCEL){
-            xmlParser x = new xmlParser();
-            List<String> listoString = x.ExcelToJSON("/home/alex/Documents/excels/enterprise.xlsx");
+            try {
+                xmlParser x = new xmlParser();
+                List<String> listOfStrings = x.ExcelToJSON("/home/alex/Documents/excels/enterprise.xlsx", "service here", "Biogen", "06/11/2017");
+
+                String resp = x.postToES(listOfStrings, "search-elastic-test-yyco5dncwicwd2nufqhakzek2e.us-east-1.es.amazonaws.com", 443, "https","rfps3","rfp");
+                System.out.println(resp);
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
         }
 
 
