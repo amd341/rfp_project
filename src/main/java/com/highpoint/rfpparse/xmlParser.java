@@ -171,7 +171,9 @@ public class xmlParser {
         for (String s : sectionsList){
             prepString.append(actionMetaData);
             prepString.append(s);
-            prepString.append("\n");
+            if (sectionsList.indexOf(s) != sectionsList.size()-1) {
+                prepString.append("\n");
+            }
 
         }
 
