@@ -1,5 +1,6 @@
 package com.highpoint.rfpparse;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import java.io.FileInputStream;
@@ -34,9 +35,20 @@ public class App
 
         Choice choice = Choice.EXCELBASIC;
 
+        Boolean isXLSX = true;
+
         try {
             String info = new String(Files.readAllBytes(Paths.get(args[1])));
             Map<String, Object> map = new HashMap<>();
+
+            String ext = FilenameUtils.getExtension(args[0]);
+
+            if(ext.equals("xls")){
+                isXLSX = false;
+            }
+            else if(ext.equals("xlsx")){
+                isXLSX = true;
+            }
 
             // split on ':' and on '::'
             String[] parts = info.split("::?");
@@ -50,11 +62,13 @@ public class App
                 System.out.println(p.getSubSections());
 
             } else if (choice == Choice.EXCELBASIC) {
-                ExcelParser x = new ExcelParser(new FileInputStream(args[0]), map);
-                x.printSections();
+                ExcelParser x = new ExcelParser(new FileInputStream(args[0]), map, isXLSX);
+                List<String> jstr = x.getJsonStrings();
+                System.out.println(jstr);
+
             } else if (choice == Choice.EXCEL) {
 
-                ExcelParser x = new ExcelParser(new FileInputStream(args[0]), map);
+                ExcelParser x = new ExcelParser(new FileInputStream(args[0]), map, isXLSX);
 
                 String resp = x.bulkIndex("search-elastic-test-yyco5dncwicwd2nufqhakzek2e.us-east-1.es.amazonaws.com", 443, "https", "rfps3", "rfp");
                 System.out.println(resp);

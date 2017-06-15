@@ -2,10 +2,12 @@ package com.highpoint.rfpparse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.nio.entity.NStringEntity;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.*;
@@ -27,13 +29,24 @@ public class ExcelParser {
     private Map<String,Object> entries;
     //private static final String FILE_NAME = "/home/alex/documents/excels/enterprise.xlsx";
 
-    public ExcelParser(InputStream input, Map<String,Object> entries) throws IOException, InvalidFormatException {
-        workbook = new XSSFWorkbook(OPCPackage.open(input));
-        this.entries = entries;
+    public ExcelParser(InputStream input, Map<String,Object> entries, Boolean isXLSX) throws IOException, InvalidFormatException {
+
+
+        if (isXLSX){
+            workbook = new XSSFWorkbook(OPCPackage.open(input));
+            this.entries = entries;
+        }
+        else{
+            workbook = new HSSFWorkbook(input);
+            this.entries = entries;
+        }
+
     }
 
     public void printSections(){
         boolean isBlankRow = true;
+
+
 
         Sheet datatypeSheet = workbook.getSheetAt(1);
         Iterator<Row> iterator = datatypeSheet.iterator();
@@ -74,7 +87,7 @@ public class ExcelParser {
         Sheet datatypeSheet = workbook.getSheetAt(0);
         StringBuilder body = new StringBuilder();
         //iterator to iterate through sheets
-        Iterator<Sheet> sheetIterator = workbook.iterator();
+        //Iterator<Sheet> sheetIterator = workbook.iterator();
 
         int count = 0;
         while(count < workbook.getNumberOfSheets()){
