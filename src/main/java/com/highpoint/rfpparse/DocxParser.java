@@ -20,10 +20,10 @@ import java.util.*;
 
 /**
  * Created by Brenden Sosnader on 6/6/17.
- * Parser class for parsing files in Microsoft Word format into sections based on Heading 1's and Heading 2's
+ * DocxParser class for parsing files in Microsoft Word format into sections based on Heading 1's and Heading 2's
  * as well as uploading parsed sections to an elasticsearch instance
  */
-public class Parser {
+public class DocxParser {
 
     private XWPFDocument xdoc;
     private Map<String,Object> entries;
@@ -35,7 +35,7 @@ public class Parser {
      * @throws IOException if input filepath is wrong
      * @throws InvalidFormatException if file is not a docx
      */
-    public Parser(InputStream input, Map<String,Object> entries) throws IOException, InvalidFormatException {
+    public DocxParser(InputStream input, Map<String,Object> entries) throws IOException, InvalidFormatException {
         xdoc = new XWPFDocument(OPCPackage.open(input));
         this.entries = entries;
 
@@ -52,7 +52,7 @@ public class Parser {
      * @return String response from elasticsearch
      * @throws IOException if hostname is incorrect
      */
-    public String bulkIndexSections(String hostname, int port, String scheme, String index, String type, boolean useSubsections) throws IOException {
+    public String bulkIndex(String hostname, int port, String scheme, String index, String type, boolean useSubsections) throws IOException {
         RestClient restClient = RestClient.builder(
                 new HttpHost(hostname, port, scheme)).build();
 

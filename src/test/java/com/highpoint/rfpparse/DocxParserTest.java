@@ -11,13 +11,13 @@ import static org.junit.Assert.*;
  * Very basic test class for Parser Class
  * should add more unit tests
  */
-public class ParserTest {
+public class DocxParserTest {
     @Test
     public void getSectionsShouldIdentifyHeadingsAndText() throws Exception {
         //heading, then paragraph, then heading, then table
         Map<String,Object> map = new HashMap<>();
         map.put("test", "test");
-        Parser p = new Parser(getClass().getResourceAsStream("/test.docx"), map);
+        DocxParser p = new DocxParser(getClass().getResourceAsStream("/test.docx"), map);
         List<Map<String,Object>> sections = p.getSections();
 
         Map<String,Object> expectedSection1 = new HashMap<>();
@@ -33,7 +33,7 @@ public class ParserTest {
         assertEquals(expectedSections, sections);
 
         //heading, then table, then heading, then paragraph
-        p = new Parser(getClass().getResourceAsStream("/test1.docx"), map);
+        p = new DocxParser(getClass().getResourceAsStream("/test1.docx"), map);
         sections = p.getSections();
         expectedSection2.put("body", "Table\n\n");
         expectedSections = new ArrayList<>(Arrays.asList(expectedSection2,expectedSection1));
@@ -41,7 +41,7 @@ public class ParserTest {
         assertEquals(expectedSections, sections);
 
         //only paragraph
-        p = new Parser(getClass().getResourceAsStream("/test2.docx"), map);
+        p = new DocxParser(getClass().getResourceAsStream("/test2.docx"), map);
         sections = p.getSections();
         expectedSection1.put("heading", "No heading");
         expectedSections = new ArrayList<>(Collections.singletonList(expectedSection1));
@@ -49,7 +49,7 @@ public class ParserTest {
         assertEquals(expectedSections, sections);
 
         //only table
-        p = new Parser(getClass().getResourceAsStream("/test3.docx"), map);
+        p = new DocxParser(getClass().getResourceAsStream("/test3.docx"), map);
         sections = p.getSections();
 
         expectedSection2.put("body", "Table\n\n\n"); //newlines are hard
