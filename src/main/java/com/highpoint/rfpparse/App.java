@@ -19,7 +19,10 @@ public class App
     public enum Choice {
         ORIGINAL, EXCELBASIC, EXCEL
     }
-
+    //Hey!
+    //to run excelparser now with intellij go to Run, Edit Configurations, type the path to the excel file
+    //as the first argument, then a space, then the path to 'config2' which is in the root of this repo
+    //config2 has the basic section tags you had before, but now in that separate file so it's more flexibile
     public static void main(final String[] args) {
 
         Choice choice = Choice.EXCELBASIC;
