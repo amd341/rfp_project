@@ -49,7 +49,7 @@ public class DocxParser {
      * @return String response from elasticsearch
      * @throws IOException if hostname is incorrect
      */
-    public String bulkIndexSections(String hostname, int port, String scheme, String index, String type, boolean useSubsections) throws IOException {
+    public String bulkIndex(String hostname, int port, String scheme, String index, String type, boolean useSubsections) throws IOException {
         RestClient restClient = RestClient.builder(
                 new HttpHost(hostname, port, scheme)).build();
 
