@@ -11,18 +11,25 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Hello world!
+ * Parser main class
  *
  */
 public class App
 {
+
     public enum Choice {
         ORIGINAL, EXCELBASIC, EXCEL
     }
+
     //Hey!
     //to run excelparser now with intellij go to Run, Edit Configurations, type the path to the excel file
     //as the first argument, then a space, then the path to 'config2' which is in the root of this repo
     //config2 has the basic section tags you had before, but now in that separate file so it's more flexibile
+
+    /**
+     * @param args takes two arguments, first the filepath to be parsed, and second
+     *             a config file that consists of key:value pairs separated by ::
+     */
     public static void main(final String[] args) {
 
         Choice choice = Choice.EXCELBASIC;
@@ -37,7 +44,6 @@ public class App
             for (int i = 0; i < parts.length; i += 2) {
                 map.put(parts[i], parts[i + 1]);
             }
-
 
             if (choice == Choice.ORIGINAL) {
                 DocxParser p = new DocxParser(new FileInputStream(args[0]), map);
