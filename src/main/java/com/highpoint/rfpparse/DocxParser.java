@@ -48,21 +48,14 @@ public class DocxParser {
      * @param scheme scheme of access
      * @param index name of index to add data to
      * @param type name of type to add data to
-     * @param useSubsections true to split by heading 2, false to split by heading 1
      * @return String response from elasticsearch
      * @throws IOException if hostname is incorrect
      */
-    public String bulkIndex(String hostname, int port, String scheme, String index, String type, boolean useSubsections) throws IOException {
+    public String bulkIndex(String hostname, int port, String scheme, String index, String type, List<String> bulkData) throws IOException {
         RestClient restClient = RestClient.builder(
                 new HttpHost(hostname, port, scheme)).build();
 
         String actionMetaData = String.format("{ \"index\" : { \"_index\" : \"%s\", \"_type\" : \"%s\" } }%n", index, type);
-        List<String> bulkData;
-        if (useSubsections) {
-            bulkData = getSubSectionsAsStrings();
-        } else {
-            bulkData = getSectionsAsStrings();
-        }
 
         StringBuilder bulkRequestBody = new StringBuilder();
         for (String bulkItem : bulkData) {
@@ -408,6 +401,143 @@ public class DocxParser {
         section.put("headingTwo", headingTwo);
         section.putAll(entries);
         sections.add(objectMapper.writeValueAsString(section));
+
+        return sections;
+    }
+
+    public List<Map<String,Object>> getHighlighted() {
+        Map<String,Object> section = new HashMap<>();
+        List<Map<String,Object>> sections = new ArrayList<>();
+        List<IBodyElement> elements = xdoc.getBodyElements();
+        boolean gotQuestion = false;
+        String body;
+        String question = "no question";
+
+        for(IBodyElement element : elements)
+        {
+            if(element.getElementType().toString().equals("PARAGRAPH"))
+            {
+                XWPFParagraph paragraph = (XWPFParagraph) element;
+                for (XWPFRun run : paragraph.getRuns()) {
+                    if (run.isHighlighted()) {
+                        if (run.getColor() != null) {
+                            if (run.getColor().equals("FF0000") && !gotQuestion) {
+                                question = paragraph.getText();
+                                gotQuestion = true;
+
+                            } else if (run.getColor().equals("0070C0") && gotQuestion) {
+                                body = paragraph.getText();
+                                section.put("body", body);
+                                section.put("question", question);
+                                section.putAll(entries);
+                                sections.add(section);
+                                section = new HashMap<>();
+                                gotQuestion = false;
+                            }
+                        }
+                    }
+                }
+
+            }
+            else if(element.getElementType().toString().equals("TABLE"))
+            {
+                XWPFTable table = (XWPFTable) element;
+                for (XWPFTableRow row : table.getRows()) {
+                    for (XWPFTableCell cell : row.getTableCells()) {
+                        for (XWPFParagraph paragraph : cell.getParagraphs()) {
+                            for(XWPFRun run : paragraph.getRuns()) {
+                                if (run.isHighlighted()) {
+                                    if (run.getColor() != null) {
+                                        if (run.getColor().equals("FF0000") && !gotQuestion) {
+                                            question = paragraph.getText();
+                                            gotQuestion = true;
+
+                                        } else if (run.getColor().equals("0070C0") && gotQuestion) {
+                                            body = cell.getText();
+                                            section.put("body", body);
+                                            section.put("question", question);
+                                            section.putAll(entries);
+                                            sections.add(section);
+                                            section = new HashMap<>();
+                                            gotQuestion = false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return sections;
+    }
+
+    public List<String> getHighlightedAsStrings() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String,Object> section = new HashMap<>();
+        List<String> sections = new ArrayList<>();
+        List<IBodyElement> elements = xdoc.getBodyElements();
+        boolean gotQuestion = false;
+        String body;
+        String question = "no question";
+
+        for(IBodyElement element : elements)
+        {
+            if(element.getElementType().toString().equals("PARAGRAPH"))
+            {
+                XWPFParagraph paragraph = (XWPFParagraph) element;
+                for (XWPFRun run : paragraph.getRuns()) {
+                    if (run.isHighlighted()) {
+                        if (run.getColor() != null) {
+                            if (run.getColor().equals("FF0000") && !gotQuestion) {
+                                question = paragraph.getText();
+                                gotQuestion = true;
+
+                            } else if (run.getColor().equals("0070C0") && gotQuestion) {
+                                body = paragraph.getText();
+                                section.put("body", body);
+                                section.put("question", question);
+                                section.putAll(entries);
+                                sections.add(objectMapper.writeValueAsString(section));
+                                section = new HashMap<>();
+                                gotQuestion = false;
+                            }
+                        }
+                    }
+                }
+
+            }
+            else if(element.getElementType().toString().equals("TABLE"))
+            {
+                XWPFTable table = (XWPFTable) element;
+                for (XWPFTableRow row : table.getRows()) {
+                    for (XWPFTableCell cell : row.getTableCells()) {
+                        for (XWPFParagraph paragraph : cell.getParagraphs()) {
+                            for(XWPFRun run : paragraph.getRuns()) {
+                                if (run.isHighlighted()) {
+                                    if (run.getColor() != null) {
+                                        if (run.getColor().equals("FF0000") && !gotQuestion) {
+                                            question = paragraph.getText();
+                                            gotQuestion = true;
+
+                                        } else if (run.getColor().equals("0070C0") && gotQuestion) {
+                                            body = cell.getText();
+                                            section.put("body", body);
+                                            section.put("question", question);
+                                            section.putAll(entries);
+                                            sections.add(objectMapper.writeValueAsString(section));
+                                            section = new HashMap<>();
+                                            gotQuestion = false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         return sections;
     }
