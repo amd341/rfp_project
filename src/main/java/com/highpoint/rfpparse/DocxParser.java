@@ -347,7 +347,7 @@ public class DocxParser {
         List<Map<String,Object>> sections = new ArrayList<>();
         List<IBodyElement> elements = xdoc.getBodyElements();
         boolean gotQuestion = false;
-        String body;
+        StringBuilder body = new StringBuilder();
         String question = "no question";
 
         for(IBodyElement element : elements)
@@ -358,18 +358,22 @@ public class DocxParser {
                 for (XWPFRun run : paragraph.getRuns()) {
                     if (run.isHighlighted()) {
                         if (run.getColor() != null) {
-                            if (run.getColor().equals("FF0000") && !gotQuestion) {
-                                question = paragraph.getText();
-                                gotQuestion = true;
+                            if (run.getColor().equals("FF0000")) {
+                                if (body.length() > 0) {
+                                    section.put("body", body);
+                                    section.put("question", question);
+                                    section.putAll(entries);
+                                    sections.add(section);
+                                    section = new HashMap<>();
+                                    body = new StringBuilder();
+                                }
 
-                            } else if (run.getColor().equals("0070C0") && gotQuestion) {
-                                body = paragraph.getText();
-                                section.put("body", body);
-                                section.put("question", question);
-                                section.putAll(entries);
-                                sections.add(section);
-                                section = new HashMap<>();
-                                gotQuestion = false;
+                                question = paragraph.getText();
+
+                            } else if (run.getColor().equals("0070C0")) {
+                                body.append(run.getText(0));
+
+
                             }
                         }
                     }
@@ -385,18 +389,20 @@ public class DocxParser {
                             for(XWPFRun run : paragraph.getRuns()) {
                                 if (run.isHighlighted()) {
                                     if (run.getColor() != null) {
-                                        if (run.getColor().equals("FF0000") && !gotQuestion) {
+                                        if (run.getColor().equals("FF0000")) {
+                                            if (body.length() > 0) {
+                                                section.put("body", body);
+                                                section.put("question", question);
+                                                section.putAll(entries);
+                                                sections.add(section);
+                                                section = new HashMap<>();
+                                                body = new StringBuilder();
+                                            }
                                             question = paragraph.getText();
-                                            gotQuestion = true;
 
-                                        } else if (run.getColor().equals("0070C0") && gotQuestion) {
-                                            body = cell.getText();
-                                            section.put("body", body);
-                                            section.put("question", question);
-                                            section.putAll(entries);
-                                            sections.add(section);
-                                            section = new HashMap<>();
-                                            gotQuestion = false;
+                                        } else if (run.getColor().equals("0070C0")) {
+                                            body.append(run.getText(0)).append("\n");
+
                                         }
                                     }
                                 }
@@ -406,6 +412,11 @@ public class DocxParser {
                 }
             }
         }
+
+        section.put("body", body);
+        section.put("question", question);
+        section.putAll(entries);
+        sections.add(section);
 
         return sections;
     }
@@ -416,7 +427,7 @@ public class DocxParser {
         List<String> sections = new ArrayList<>();
         List<IBodyElement> elements = xdoc.getBodyElements();
         boolean gotQuestion = false;
-        String body;
+        StringBuilder body = new StringBuilder();
         String question = "no question";
 
         for(IBodyElement element : elements)
@@ -427,18 +438,22 @@ public class DocxParser {
                 for (XWPFRun run : paragraph.getRuns()) {
                     if (run.isHighlighted()) {
                         if (run.getColor() != null) {
-                            if (run.getColor().equals("FF0000") && !gotQuestion) {
-                                question = paragraph.getText();
-                                gotQuestion = true;
+                            if (run.getColor().equals("FF0000")) {
+                                if (body.length() > 0) {
+                                    section.put("body", body);
+                                    section.put("question", question);
+                                    section.putAll(entries);
+                                    sections.add(objectMapper.writeValueAsString(section));
+                                    section = new HashMap<>();
+                                    body = new StringBuilder();
+                                }
 
-                            } else if (run.getColor().equals("0070C0") && gotQuestion) {
-                                body = paragraph.getText();
-                                section.put("body", body);
-                                section.put("question", question);
-                                section.putAll(entries);
-                                sections.add(objectMapper.writeValueAsString(section));
-                                section = new HashMap<>();
-                                gotQuestion = false;
+                                question = paragraph.getText();
+
+                            } else if (run.getColor().equals("0070C0")) {
+                                body.append(run.getText(0));
+
+
                             }
                         }
                     }
@@ -454,18 +469,20 @@ public class DocxParser {
                             for(XWPFRun run : paragraph.getRuns()) {
                                 if (run.isHighlighted()) {
                                     if (run.getColor() != null) {
-                                        if (run.getColor().equals("FF0000") && !gotQuestion) {
+                                        if (run.getColor().equals("FF0000")) {
+                                            if (body.length() > 0) {
+                                                section.put("body", body);
+                                                section.put("question", question);
+                                                section.putAll(entries);
+                                                sections.add(objectMapper.writeValueAsString(section));
+                                                section = new HashMap<>();
+                                                body = new StringBuilder();
+                                            }
                                             question = paragraph.getText();
-                                            gotQuestion = true;
 
-                                        } else if (run.getColor().equals("0070C0") && gotQuestion) {
-                                            body = cell.getText();
-                                            section.put("body", body);
-                                            section.put("question", question);
-                                            section.putAll(entries);
-                                            sections.add(objectMapper.writeValueAsString(section));
-                                            section = new HashMap<>();
-                                            gotQuestion = false;
+                                        } else if (run.getColor().equals("0070C0")) {
+                                            body.append(run.getText(0)).append("\n");
+
                                         }
                                     }
                                 }
@@ -475,6 +492,11 @@ public class DocxParser {
                 }
             }
         }
+
+        section.put("body", body);
+        section.put("question", question);
+        section.putAll(entries);
+        sections.add(objectMapper.writeValueAsString(section));
 
         return sections;
     }

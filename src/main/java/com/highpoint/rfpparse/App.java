@@ -60,7 +60,7 @@ public class App
             if (choice == Choice.ORIGINAL) {
                 DocxParser p = new DocxParser(new FileInputStream(args[0]), map);
                 System.out.println(SearchClient.bulkIndex("search-elastic-test-yyco5dncwicwd2nufqhakzek2e.us-east-1.es.amazonaws.com", 443, "https", "rfps2", "rfp2", p.getHighlightedAsStrings()));
-
+                //System.out.println(p.getHighlighted());
             } else if (choice == Choice.EXCELBASIC) {
                 ExcelParser x = new ExcelParser(new FileInputStream(args[0]), map, isXLSX);
                 List<String> jstr = x.getJsonStrings();
